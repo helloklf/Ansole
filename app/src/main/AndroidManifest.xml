@@ -45,6 +45,9 @@
         android:icon="@drawable/ic_launcher"
         android:label="@string/application_terminal"
         android:theme="@style/AppTheme">
+        <meta-data
+            android:name="android.max_aspect"
+            android:value="2.8" />
         <activity
             android:name="com.romide.terminal.activity.Term"
             android:configChanges="keyboard|keyboardHidden|orientation"
@@ -100,7 +103,6 @@
         </activity-alias>
         <activity-alias
             android:name="RunScript"
-            android:permission="terminal.RUN_SCRIPT"
             android:targetActivity="com.romide.terminal.activity.RemoteInterface">
             <intent-filter>
                 <action android:name="jackpal.androidterm.RUN_SCRIPT"/>

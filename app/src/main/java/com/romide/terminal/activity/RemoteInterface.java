@@ -50,8 +50,8 @@ import com.romide.terminal.session.TermSettings;
  * The old procedure of using Intent.Extra is still available but is discouraged.
  */
 public class RemoteInterface extends Activity {
-	static final String PRIVATE_OPEN_NEW_WINDOW = "jackpal.androidterm.private.OPEN_NEW_WINDOW";
-	static final String PRIVATE_SWITCH_WINDOW = "jackpal.androidterm.private.SWITCH_WINDOW";
+	static final String PRIVATE_OPEN_NEW_WINDOW = "terminal.private.OPEN_NEW_WINDOW";
+	static final String PRIVATE_SWITCH_WINDOW = "terminal.private.SWITCH_WINDOW";
 	static final String PRIVATE_EXTRA_TARGET_WINDOW = "jackpal.androidterm.private.target_window";
 
 	private TermSettings mSettings;

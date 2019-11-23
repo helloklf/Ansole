@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <string name="application_terminal">Ansole</string>
+    <string name="application_terminal">Ansole(ski)</string>
     <string name="input_password">Input your password</string>
     <string name="password_worng">Password not correct.</string>
     <string name="open_link">Open url %s</string>

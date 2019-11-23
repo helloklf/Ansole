@@ -20,7 +20,7 @@
     <string name="summary_start_on_boot">开机时自动打开终端</string>
     <string name="title_auto_su">自动获取 root 权限</string>
     <string name="summary_auto_su">每次启动以 root 用户打开 shell</string>
-    <string name="application_terminal">Ansole</string>
+    <string name="application_terminal">Ansole(ski)</string>
     <string name="input_window_title">输入窗口标题</string>
     <string name="preferences">设置</string>
     <string name="menu_set_title">设置窗口标题</string>
