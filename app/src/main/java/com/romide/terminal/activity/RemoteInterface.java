@@ -32,8 +32,7 @@ import android.os.IBinder;
 import android.preference.PreferenceManager;
 import android.text.TextUtils;
 import android.util.Log;
-
-import com.kiva.termit.TermConstant;
+import com.romide.terminal.common.TermConstant;
 import com.romide.terminal.emulatorview.TermSession;
 import com.romide.terminal.service.TermService;
 import com.romide.terminal.session.GenericTermSession;

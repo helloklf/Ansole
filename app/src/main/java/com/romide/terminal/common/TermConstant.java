@@ -1,4 +1,4 @@
-package com.kiva.termit;
+package com.romide.terminal.common;
 
 
 public class TermConstant {

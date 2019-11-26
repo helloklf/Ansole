@@ -1,8 +1,7 @@
 package com.romide.terminal;
 
 import android.app.Application;
-
-import com.kiva.termit.TermUtil;
+import com.romide.terminal.common.TermUtil;
 import com.romide.terminal.jni.KivaTerminal;
 import com.romide.terminal.util.CrashHandler;
 

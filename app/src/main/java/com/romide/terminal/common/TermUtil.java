@@ -1,4 +1,4 @@
-package com.kiva.termit;
+package com.romide.terminal.common;
 
 import android.content.Context;
 import android.content.Intent;
