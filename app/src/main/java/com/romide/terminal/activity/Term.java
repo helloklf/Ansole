@@ -19,6 +19,8 @@ package com.romide.terminal.activity;
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.content.BroadcastReceiver;
+import android.content.ClipData;
+import android.content.ClipboardManager;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -984,12 +986,6 @@ public class Term extends ActivityBase implements UpdateCallback {
         }
     }
 
-    private boolean canPaste() {
-        ClipboardManagerCompat clip = ClipboardManagerCompatFactory
-                .getManager(getApplicationContext());
-        return clip.hasText();
-    }
-
     private void doPreferences() {
         startActivity(new Intent(this, TermPreference.class));
     }
@@ -1001,16 +997,28 @@ public class Term extends ActivityBase implements UpdateCallback {
     }
 
     private void doPaste() {
-        if (!canPaste()) {
-            return;
+        /*
+            // origin
+            ClipboardManagerCompat clip = ClipboardManagerCompatFactory.getManager(getApplicationContext());
+            CharSequence paste = clip.getText();
+            String text = paste.toString();
+            getCurrentTermSession().write(text);
+        */
+
+        ClipboardManager clipboardManager = (ClipboardManager)getSystemService(CLIPBOARD_SERVICE);
+        try {
+            if (clipboardManager.hasPrimaryClip()) {
+                ClipData clipData = clipboardManager.getPrimaryClip();
+                if (clipData.getItemCount() > 0) {
+                    ClipData.Item item = clipData.getItemAt(0);
+                    String text = item.getText().toString();
+                    getCurrentTermSession().write(text);
+
+                    new PasteHistory(this).pushHistory(text);
+                }
+            }
+        } catch (NullPointerException ignored) {
         }
-
-        ClipboardManagerCompat clip = ClipboardManagerCompatFactory.getManager(getApplicationContext());
-        CharSequence paste = clip.getText();
-        String text = paste.toString();
-        getCurrentTermSession().write(text);
-
-        new PasteHistory(this).pushHistory(text);
     }
 
     public void doWriteScript(String script) {

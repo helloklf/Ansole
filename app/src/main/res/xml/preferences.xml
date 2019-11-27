@@ -9,7 +9,7 @@
         <intent
             android:action="android.intent.action.MAIN"
             android:targetClass="com.romide.terminal.activity.TermScreenPreference"
-            android:targetPackage="com.romide.terminal.ski"/>
+            android:targetPackage="com.romide.terminal"/>
 
     </Preference>
 
@@ -21,7 +21,7 @@
         <intent
             android:action="android.intent.action.MAIN"
             android:targetClass="com.romide.terminal.activity.TermKeyboardPreference"
-            android:targetPackage="com.romide.terminal.ski"/>
+            android:targetPackage="com.romide.terminal"/>
 
     </Preference>
 
@@ -33,7 +33,7 @@
         <intent
             android:action="android.intent.action.MAIN"
             android:targetClass="com.romide.terminal.activity.TermTextPreference"
-            android:targetPackage="com.romide.terminal.ski"/>
+            android:targetPackage="com.romide.terminal"/>
 
     </Preference>
 
@@ -45,7 +45,7 @@
         <intent
             android:action="android.intent.action.MAIN"
             android:targetClass="com.romide.terminal.activity.TermShellPreference"
-            android:targetPackage="com.romide.terminal.ski"/>
+            android:targetPackage="com.romide.terminal"/>
 
     </Preference>
 
@@ -57,7 +57,7 @@
         <intent
             android:action="android.intent.action.MAIN"
             android:targetClass="com.romide.terminal.activity.TermCustomPreference"
-            android:targetPackage="com.romide.terminal.ski"/>
+            android:targetPackage="com.romide.terminal"/>
 
     </Preference>
 
