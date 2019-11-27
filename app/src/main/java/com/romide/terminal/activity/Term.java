@@ -18,7 +18,6 @@ package com.romide.terminal.activity;
 
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
-import android.app.Dialog;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
@@ -315,8 +314,7 @@ public class Term extends ActivityBase implements UpdateCallback {
         mViewFlipper = (TermViewFlipper) findViewById(VIEW_FLIPPER);
 
         PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
-        mWakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK,
-                TermDebug.LOG_TAG);
+        mWakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, TermDebug.LOG_TAG);
 
         ActionBar actionBar = getSupportActionBar(); /*ActivityCompat.getActionBar(this);*/
         if (actionBar != null) {
@@ -870,8 +868,7 @@ public class Term extends ActivityBase implements UpdateCallback {
             mViewFlipper.addView(view);
             onResumeSelectWindow = position;
         } else if (action.equals(RemoteInterface.PRIVATE_SWITCH_WINDOW)) {
-            int target = intent.getIntExtra(
-                    RemoteInterface.PRIVATE_EXTRA_TARGET_WINDOW, -1);
+            int target = intent.getIntExtra(RemoteInterface.PRIVATE_EXTRA_TARGET_WINDOW, -1);
             if (target >= 0) {
                 onResumeSelectWindow = target;
             }

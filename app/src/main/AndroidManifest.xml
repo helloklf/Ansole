@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     package="com.romide.terminal"
     android:sharedUserId="com.linux4droid">
 
@@ -43,8 +44,8 @@
         android:hardwareAccelerated="true"
         android:icon="@drawable/ic_launcher"
         android:label="@string/application_terminal"
-        android:theme="@style/AppTheme">
-        <activity android:name=".activity.PasteHistoryDialog"></activity>
+        android:theme="@style/AppTheme"
+        tools:ignore="GoogleAppIndexingWarning">
 
         <meta-data
             android:name="android.max_aspect"
@@ -92,10 +93,10 @@
 
         <activity-alias
             android:name=".RunScript"
+            android:permission="terminal.RUN_SCRIPT"
             android:targetActivity=".activity.RemoteInterface">
             <intent-filter>
                 <action android:name="jackpal.androidterm.RUN_SCRIPT" />
-
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity-alias>

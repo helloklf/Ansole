@@ -10,6 +10,7 @@ public class PasteHistory {
     private static final String CONFIG_FILE = "ski_paste_history";
 
     private Context mContext;
+
     public PasteHistory(Context context) {
         this.mContext = context;
     }

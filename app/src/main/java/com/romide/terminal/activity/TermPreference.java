@@ -17,7 +17,6 @@
 package com.romide.terminal.activity;
 
 import android.os.Bundle;
-
 import com.romide.terminal.R;
 
 public class TermPreference extends PreferenceBase {
@@ -25,6 +24,5 @@ public class TermPreference extends PreferenceBase {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setPreference(R.xml.preferences);
-
     }
 }

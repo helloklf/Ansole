@@ -7,12 +7,14 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.ListView;
+
 import com.romide.terminal.R;
 import com.romide.terminal.adapter.PasteListAdapter;
 import com.romide.terminal.common.WriteScriptInterface;
 
 public class PasteHistoryDialog extends DialogFragment {
     private WriteScriptInterface writeScriptInstance;
+    private Context mContext;
 
     public PasteHistoryDialog() {
         super();
@@ -24,8 +26,6 @@ public class PasteHistoryDialog extends DialogFragment {
 
         return dialog;
     }
-
-    private Context mContext;
 
     @Override
     public void onAttach(Context context) {

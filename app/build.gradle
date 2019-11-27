@@ -12,7 +12,7 @@ android {
     }
 
     defaultConfig {
-        applicationId "com.romide.terminal"
+        applicationId "com.romide.terminal.ski"
         minSdkVersion 17
         targetSdkVersion 26
         versionName "4.0"
