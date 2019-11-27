@@ -17,13 +17,14 @@
 
 package com.romide.terminal.compat;
 
-import java.lang.reflect.Method;
-import java.lang.reflect.InvocationTargetException;
-import android.app.Service;
-import android.util.Log;
 import android.app.Notification;
 import android.app.NotificationManager;
+import android.app.Service;
 import android.content.Context;
+import android.util.Log;
+
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 
 /* Provide startForeground() and stopForeground() compatibility, using the
    current interfaces where available and the deprecated setForeground()
@@ -31,12 +32,12 @@ import android.content.Context;
    The idea for the implementation comes from an example in the documentation of
    android.app.Service */
 public class ServiceForegroundCompat {
-    private static Class<?>[] mSetForegroundSig = new Class[] {
-        boolean.class };
-    private static Class<?>[] mStartForegroundSig = new Class[] {
-        int.class, Notification.class };
-    private static Class<?>[] mStopForegroundSig = new Class[] {
-        boolean.class };
+    private static Class<?>[] mSetForegroundSig = new Class[]{
+            boolean.class};
+    private static Class<?>[] mStartForegroundSig = new Class[]{
+            int.class, Notification.class};
+    private static Class<?>[] mStopForegroundSig = new Class[]{
+            boolean.class};
 
     private Service service;
     private NotificationManager mNM;
@@ -44,6 +45,30 @@ public class ServiceForegroundCompat {
     private Method mStartForeground;
     private Method mStopForeground;
     private int notifyId;
+
+    public ServiceForegroundCompat(Service service) {
+        this.service = service;
+        mNM = (NotificationManager) service.getSystemService(Context.NOTIFICATION_SERVICE);
+
+        Class<?> clazz = service.getClass();
+
+        try {
+            mStartForeground = clazz.getMethod("startForeground", mStartForegroundSig);
+            mStopForeground = clazz.getMethod("stopForeground", mStopForegroundSig);
+        } catch (NoSuchMethodException e) {
+            mStartForeground = mStopForeground = null;
+        }
+
+        try {
+            mSetForeground = clazz.getMethod("setForeground", mSetForegroundSig);
+        } catch (NoSuchMethodException e) {
+            mSetForeground = null;
+        }
+
+        if (mStartForeground == null && mSetForeground == null) {
+            throw new IllegalStateException("Neither startForeground() or setForeground() present!");
+        }
+    }
 
     private void invokeMethod(Object receiver, Method method, Object... args) {
         try {
@@ -57,13 +82,13 @@ public class ServiceForegroundCompat {
             Log.w("ServiceCompat", "Method threw exception", e.getCause());
         }
     }
-    
+
     public void notifyNotification(int id, Notification notification) {
-    	mNM.notify(id, notification);
+        mNM.notify(id, notification);
     }
-    
+
     public void removeNotification(int id) {
-    	mNM.cancel(notifyId);
+        mNM.cancel(notifyId);
     }
 
     public void startForeground(int id, Notification notification) {
@@ -84,32 +109,8 @@ public class ServiceForegroundCompat {
         }
 
         if (removeNotify) {
-        	removeNotification(notifyId);
+            removeNotification(notifyId);
         }
         invokeMethod(service, mSetForeground, Boolean.FALSE);
-    }
-
-    public ServiceForegroundCompat(Service service) {
-        this.service = service;
-        mNM = (NotificationManager)service.getSystemService(Context.NOTIFICATION_SERVICE);
-        
-        Class<?> clazz = service.getClass();
-
-        try {
-            mStartForeground = clazz.getMethod("startForeground", mStartForegroundSig);
-            mStopForeground = clazz.getMethod("stopForeground", mStopForegroundSig);
-        } catch (NoSuchMethodException e) {
-            mStartForeground = mStopForeground = null;
-        }
-
-        try {
-            mSetForeground = clazz.getMethod("setForeground", mSetForegroundSig);
-        } catch (NoSuchMethodException e) {
-            mSetForeground = null;
-        }
-
-        if (mStartForeground == null && mSetForeground == null) {
-            throw new IllegalStateException("Neither startForeground() or setForeground() present!");
-        }
     }
 }

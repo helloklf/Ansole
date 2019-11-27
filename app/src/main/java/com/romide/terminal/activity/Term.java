@@ -17,6 +17,8 @@
 package com.romide.terminal.activity;
 
 import android.annotation.SuppressLint;
+import android.app.AlertDialog;
+import android.app.Dialog;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
@@ -37,7 +39,6 @@ import android.os.IBinder;
 import android.os.PowerManager;
 import android.preference.PreferenceManager;
 import android.support.v7.app.ActionBar;
-import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.AppCompatEditText;
 import android.support.v7.widget.AppCompatSpinner;
 import android.support.v7.widget.AppCompatTextView;
@@ -62,6 +63,7 @@ import android.widget.Toast;
 
 import com.romide.terminal.R;
 import com.romide.terminal.adapter.WindowListAdapter;
+import com.romide.terminal.common.WriteScriptInterface;
 import com.romide.terminal.compat.ActivityCompat;
 import com.romide.terminal.compat.AndroidCompat;
 import com.romide.terminal.compat.MenuItemCompat;
@@ -93,88 +95,41 @@ import java.util.Locale;
  */
 
 public class Term extends ActivityBase implements UpdateCallback {
-    /**
-     * The ViewFlipper which holds the collection of EmulatorView widgets.
-     */
-    private TermViewFlipper mViewFlipper;
-
+    public static final int REQUEST_CHOOSE_WINDOW = 1;
+    public static final String EXTRA_WINDOW_ID = "terminal.window_id";
     /**
      * The name of the ViewFlipper in the resources.
      */
     private static final int VIEW_FLIPPER = R.id.view_flipper;
-
     private static final int TERM_LIST = R.id.term_list;
-
     private static final int TERM_MENU_COUNT = 5;
-    private TermMenuItem[] mTermMenuItems = new TermMenuItem[TERM_MENU_COUNT];
-
-    private SessionList mTermSessions;
-    private AppCompatSpinner mTermList;
-
-    private SharedPreferences mPrefs;
-    private TermSettings mSettings;
-
     private final static int SELECT_TEXT_ID = 0;
     private final static int COPY_ALL_ID = 1;
     private final static int PASTE_ID = 2;
     private final static int SEND_CONTROL_KEY_ID = 3;
     private final static int SEND_FN_KEY_ID = 4;
-
-    private boolean mAlreadyStarted = false;
-    private boolean mStopServiceOnFinish = false;
-
-    private Intent mTermServiceIntent;
-
-    public static final int REQUEST_CHOOSE_WINDOW = 1;
-    public static final String EXTRA_WINDOW_ID = "terminal.window_id";
-    private int onResumeSelectWindow = -1;
-
-    private PowerManager.WakeLock mWakeLock;
-
     private static final String ACTION_PATH_BROADCAST = "terminal.broadcast.APPEND_TO_PATH";
     private static final String ACTION_PATH_PREPEND_BROADCAST = "terminal.broadcast.PREPEND_TO_PATH";
     private static final String PERMISSION_PATH_BROADCAST = "terminal.permission.APPEND_TO_PATH";
     private static final String PERMISSION_PATH_PREPEND_BROADCAST = "terminal.permission.PREPEND_TO_PATH";
-    private int mPendingPathBroadcasts = 0;
-    private BroadcastReceiver mPathReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            String path = makePathFromBundle(getResultExtras(false));
-            if (intent.getAction().equals(ACTION_PATH_PREPEND_BROADCAST)) {
-                mSettings.setPrependPath(path);
-            } else {
-                mSettings.setAppendPath(path);
-            }
-            mPendingPathBroadcasts--;
-
-            if (mPendingPathBroadcasts <= 0 && mTermService != null) {
-                populateViewFlipper();
-                populateWindowList();
-            }
-        }
-    };
     // Available on API 12 and later
     private static final int FLAG_INCLUDE_STOPPED_PACKAGES = 0x20;
-
+    /**
+     * The ViewFlipper which holds the collection of EmulatorView widgets.
+     */
+    private TermViewFlipper mViewFlipper;
+    private TermMenuItem[] mTermMenuItems = new TermMenuItem[TERM_MENU_COUNT];
+    private SessionList mTermSessions;
+    private AppCompatSpinner mTermList;
+    private SharedPreferences mPrefs;
+    private TermSettings mSettings;
+    private boolean mAlreadyStarted = false;
+    private boolean mStopServiceOnFinish = false;
+    private Intent mTermServiceIntent;
+    private int onResumeSelectWindow = -1;
+    private PowerManager.WakeLock mWakeLock;
+    private int mPendingPathBroadcasts = 0;
     private TermService mTermService;
-    private ServiceConnection mTermServiceConnection = new ServiceConnection() {
-        @Override
-        public void onServiceConnected(ComponentName className, IBinder service) {
-            Log.i(TermDebug.LOG_TAG, "Connected to service");
-            TermService.TSBinder binder = (TermService.TSBinder) service;
-            mTermService = binder.getService();
-            if (mPendingPathBroadcasts <= 0) {
-                populateViewFlipper();
-                populateWindowList();
-            }
-        }
-
-        @Override
-        public void onServiceDisconnected(ComponentName arg0) {
-            mTermService = null;
-        }
-    };
-
     private SoundPool mSoundPoll;
     private int mBellSoundId;
     private long lastBellTime = System.currentTimeMillis();
@@ -196,97 +151,14 @@ public class Term extends ActivityBase implements UpdateCallback {
             }
         }
     };
-
     private ActionBar mActionBar;
     private int mActionBarMode = TermSettings.ACTION_BAR_MODE_NONE;
-
     private WindowListAdapter mWinListAdapter;
-
-    private class WindowListActionBarAdapter extends WindowListAdapter
-            implements UpdateCallback {
-
-        public WindowListActionBarAdapter(Context ctx, SessionList sessions) {
-            super(ctx, sessions);
-        }
-
-        @SuppressWarnings("ResourceType")
-        @Override
-        public View getView(int position, View convertView, ViewGroup parent) {
-            AppCompatTextView label = (AppCompatTextView) LayoutInflater.from(Term.this).inflate(R.layout.window_list_item_actionbar, null, false);
-
-            String title = getSessionTitle(position,
-                    getString(R.string.window_title, position + 1));
-            label.setText(title);
-            return label;
-        }
-
-        @Override
-        public View getDropDownView(int position, View convertView,
-                                    ViewGroup parent) {
-            return super.getView(position, convertView, parent);
-        }
-
-        @Override
-        public void onUpdate() {
-            notifyDataSetChanged();
-            if (mTermList != null) {
-                mTermList.setSelection(mViewFlipper
-                        .getDisplayedChild());
-            }
-        }
-    }
-
     private boolean mHaveFullHwKeyboard = false;
-
-    private class EmulatorViewGestureListener extends SimpleOnGestureListener {
-        private EmulatorView view;
-
-        public EmulatorViewGestureListener(EmulatorView view) {
-            this.view = view;
-        }
-
-        @Override
-        public boolean onSingleTapUp(MotionEvent e) {
-            // Let the EmulatorView handle taps if mouse tracking is active
-            if (view.isMouseTrackingActive())
-                return false;
-
-            // Check for link at tap location
-            String link = view.getURLat(e.getX(), e.getY());
-            if (link != null)
-                execURL(link);
-            else
-                doUIToggle((int) e.getX(), (int) e.getY(),
-                        view.getVisibleWidth(), view.getVisibleHeight());
-            return true;
-        }
-
-        @Override
-        public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX,
-                               float velocityY) {
-            float absVelocityX = Math.abs(velocityX);
-            float absVelocityY = Math.abs(velocityY);
-            if (absVelocityX > Math.max(1000.0f, 2.0 * absVelocityY)) {
-                // Assume user wanted side to side movement
-                if (velocityX > 0) {
-                    // Left to right swipe -- previous window
-                    mViewFlipper.showPrevious();
-                } else {
-                    // Right to left swipe -- next window
-                    mViewFlipper.showNext();
-                }
-                return true;
-            } else {
-                return false;
-            }
-        }
-    }
-
     /**
      * Should we use keyboard shortcuts?
      */
     private boolean mUseKeyboardShortcuts;
-
     /**
      * Intercepts keys before the view/terminal gets it.
      */
@@ -342,8 +214,8 @@ public class Term extends ActivityBase implements UpdateCallback {
                     && mActionBar.isShowing()) {
                 /*
                  * We need to intercept the key event before the view sees it,
-				 * otherwise the view will handle it before we get it
-				 */
+                 * otherwise the view will handle it before we get it
+                 */
                 onKeyUp(keyCode, event);
                 return true;
             } else {
@@ -351,6 +223,57 @@ public class Term extends ActivityBase implements UpdateCallback {
             }
         }
     };
+    private BroadcastReceiver mPathReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String path = makePathFromBundle(getResultExtras(false));
+            if (intent.getAction().equals(ACTION_PATH_PREPEND_BROADCAST)) {
+                mSettings.setPrependPath(path);
+            } else {
+                mSettings.setAppendPath(path);
+            }
+            mPendingPathBroadcasts--;
+
+            if (mPendingPathBroadcasts <= 0 && mTermService != null) {
+                populateViewFlipper();
+                populateWindowList();
+            }
+        }
+    };
+    private ServiceConnection mTermServiceConnection = new ServiceConnection() {
+        @Override
+        public void onServiceConnected(ComponentName className, IBinder service) {
+            Log.i(TermDebug.LOG_TAG, "Connected to service");
+            TermService.TSBinder binder = (TermService.TSBinder) service;
+            mTermService = binder.getService();
+            if (mPendingPathBroadcasts <= 0) {
+                populateViewFlipper();
+                populateWindowList();
+            }
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName arg0) {
+            mTermService = null;
+        }
+    };
+
+    public static Intent createTermIntent(Context context) {
+        Intent intent = new Intent(context, Term.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+
+        return intent;
+    }
+
+    protected static TermSession createTermSession(Context context,
+                                                   TermSettings settings, String initialCommand) throws IOException {
+        GenericTermSession session = new ShellTermSession(settings,
+                initialCommand);
+        session.setProcessExitMessage(context
+                .getString(R.string.process_exit_message));
+
+        return session;
+    }
 
     @SuppressWarnings("deprecation")
     @SuppressLint("InlinedApi")
@@ -548,23 +471,6 @@ public class Term extends ActivityBase implements UpdateCallback {
         }
     }
 
-    public static Intent createTermIntent(Context context) {
-        Intent intent = new Intent(context, Term.class);
-        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-
-        return intent;
-    }
-
-    protected static TermSession createTermSession(Context context,
-                                                   TermSettings settings, String initialCommand) throws IOException {
-        GenericTermSession session = new ShellTermSession(settings,
-                initialCommand);
-        session.setProcessExitMessage(context
-                .getString(R.string.process_exit_message));
-
-        return session;
-    }
-
     private TermSession createTermSession() throws IOException {
         TermSettings settings = mSettings;
         TermSession session = createTermSession(this, settings,
@@ -719,10 +625,10 @@ public class Term extends ActivityBase implements UpdateCallback {
             }
         }
 
-		/*
+        /*
          * Explicitly close the input method Otherwise, the soft keyboard could
-		 * cover up whatever activity takes our place
-		 */
+         * cover up whatever activity takes our place
+         */
         final IBinder token = viewFlipper.getWindowToken();
         new Thread() {
             @Override
@@ -732,7 +638,6 @@ public class Term extends ActivityBase implements UpdateCallback {
             }
         }.start();
     }
-
 
     private boolean checkHaveFullHwKeyboard(Configuration c) {
         return (c.keyboard == Configuration.KEYBOARD_QWERTY)
@@ -781,9 +686,13 @@ public class Term extends ActivityBase implements UpdateCallback {
             doToggleWakeLock();
         } else if (id == R.id.menu_title) {
             doRenameWindow();
-        } else if (id == R.id.menu_window_list) {
-            startActivityForResult(new Intent(this, WindowListActivity.class),
-                    REQUEST_CHOOSE_WINDOW);
+        } else if (id == R.id.menu_paste) {
+            PasteHistoryDialog.getInstance(new WriteScriptInterface() {
+                @Override
+                public void writeScript(String script) {
+                    doWriteScript(script);
+                }
+            }).show(getFragmentManager(), "memo");
         }
         // Hide the action bar if appropriate
         if (mActionBarMode == TermSettings.ACTION_BAR_MODE_HIDES) {
@@ -1098,10 +1007,17 @@ public class Term extends ActivityBase implements UpdateCallback {
         if (!canPaste()) {
             return;
         }
-        ClipboardManagerCompat clip = ClipboardManagerCompatFactory
-                .getManager(getApplicationContext());
+
+        ClipboardManagerCompat clip = ClipboardManagerCompatFactory.getManager(getApplicationContext());
         CharSequence paste = clip.getText();
-        getCurrentTermSession().write(paste.toString());
+        String text = paste.toString();
+        getCurrentTermSession().write(text);
+
+        new PasteHistory(this).pushHistory(text);
+    }
+
+    public void doWriteScript(String script) {
+        getCurrentTermSession().write(script);
     }
 
     private void doSendControlKey() {
@@ -1198,6 +1114,83 @@ public class Term extends ActivityBase implements UpdateCallback {
                         }).setNegativeButton(android.R.string.no, null).show();
     }
 
+    private class WindowListActionBarAdapter extends WindowListAdapter
+            implements UpdateCallback {
+
+        public WindowListActionBarAdapter(Context ctx, SessionList sessions) {
+            super(ctx, sessions);
+        }
+
+        @SuppressWarnings("ResourceType")
+        @Override
+        public View getView(int position, View convertView, ViewGroup parent) {
+            AppCompatTextView label = (AppCompatTextView) LayoutInflater.from(Term.this).inflate(R.layout.window_list_item_actionbar, null, false);
+
+            String title = getSessionTitle(position,
+                    getString(R.string.window_title, position + 1));
+            label.setText(title);
+            return label;
+        }
+
+        @Override
+        public View getDropDownView(int position, View convertView,
+                                    ViewGroup parent) {
+            return super.getView(position, convertView, parent);
+        }
+
+        @Override
+        public void onUpdate() {
+            notifyDataSetChanged();
+            if (mTermList != null) {
+                mTermList.setSelection(mViewFlipper
+                        .getDisplayedChild());
+            }
+        }
+    }
+
+    private class EmulatorViewGestureListener extends SimpleOnGestureListener {
+        private EmulatorView view;
+
+        public EmulatorViewGestureListener(EmulatorView view) {
+            this.view = view;
+        }
+
+        @Override
+        public boolean onSingleTapUp(MotionEvent e) {
+            // Let the EmulatorView handle taps if mouse tracking is active
+            if (view.isMouseTrackingActive())
+                return false;
+
+            // Check for link at tap location
+            String link = view.getURLat(e.getX(), e.getY());
+            if (link != null)
+                execURL(link);
+            else
+                doUIToggle((int) e.getX(), (int) e.getY(),
+                        view.getVisibleWidth(), view.getVisibleHeight());
+            return true;
+        }
+
+        @Override
+        public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX,
+                               float velocityY) {
+            float absVelocityX = Math.abs(velocityX);
+            float absVelocityY = Math.abs(velocityY);
+            if (absVelocityX > Math.max(1000.0f, 2.0 * absVelocityY)) {
+                // Assume user wanted side to side movement
+                if (velocityX > 0) {
+                    // Left to right swipe -- previous window
+                    mViewFlipper.showPrevious();
+                } else {
+                    // Right to left swipe -- next window
+                    mViewFlipper.showNext();
+                }
+                return true;
+            } else {
+                return false;
+            }
+        }
+    }
 
     private class TermMenuItem implements CharSequence {
         private int id;

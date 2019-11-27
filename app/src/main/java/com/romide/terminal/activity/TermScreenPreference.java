@@ -21,8 +21,8 @@ import android.os.Bundle;
 import com.romide.terminal.R;
 
 public class TermScreenPreference extends PreferenceBase {
-	public void onCreate(Bundle savedInstanceState) {
-		super.onCreate(savedInstanceState);
-		setPreference(R.xml.screen_preferences);
-	}
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setPreference(R.xml.screen_preferences);
+    }
 }

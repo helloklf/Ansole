@@ -20,13 +20,14 @@
     <string name="summary_start_on_boot">开机时自动打开终端</string>
     <string name="title_auto_su">自动获取 root 权限</string>
     <string name="summary_auto_su">每次启动以 root 用户打开 shell</string>
-    <string name="application_terminal">Ansole(ski)</string>
+    <string name="application_terminal">Ansole+</string>
     <string name="input_window_title">输入窗口标题</string>
     <string name="preferences">设置</string>
     <string name="menu_set_title">设置窗口标题</string>
     <string name="new_window">新窗口</string>
     <string name="close_window">关闭窗口</string>
-    <string name="window_list">窗口列表</string>
+    <string name="paste_history">粘贴记录</string>
+    <string name="paste_history_desc">这里显示的是你在终端里粘贴过的记录，点击内容即可写入终端</string>
     <string name="prev_window">前一窗口</string>
     <string name="next_window">后一窗口</string>
     <string name="toggle_soft_keyboard">打开/关闭软键盘</string>

@@ -3,8 +3,8 @@ package com.romide.terminal.emulatorview.compat;
 import android.annotation.SuppressLint;
 import android.content.ClipData;
 import android.content.ClipDescription;
-import android.content.Context;
 import android.content.ClipboardManager;
+import android.content.Context;
 
 @SuppressLint("NewApi")
 public class ClipboardManagerCompatV11 implements ClipboardManagerCompat {
@@ -22,14 +22,14 @@ public class ClipboardManagerCompatV11 implements ClipboardManagerCompat {
     }
 
     @Override
-    public boolean hasText() {
-        return (clip.hasPrimaryClip() && clip.getPrimaryClipDescription()
-                .hasMimeType(ClipDescription.MIMETYPE_TEXT_PLAIN));
-    }
-
-    @Override
     public void setText(CharSequence text) {
         ClipData clipData = ClipData.newPlainText("simple text", text);
         clip.setPrimaryClip(clipData);
+    }
+
+    @Override
+    public boolean hasText() {
+        return (clip.hasPrimaryClip() && clip.getPrimaryClipDescription()
+                .hasMimeType(ClipDescription.MIMETYPE_TEXT_PLAIN));
     }
 }

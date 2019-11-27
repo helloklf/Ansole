@@ -21,6 +21,11 @@ final class TextStyle {
 
     final static int kNormalTextStyle = encode(ciForeground, ciBackground, fxNormal);
 
+    private TextStyle() {
+        // Prevent instantiation
+        throw new UnsupportedOperationException();
+    }
+
     static int encode(int foreColor, int backColor, int effect) {
         return ((effect & 0x3f) << 18) | ((foreColor & 0x1ff) << 9) | (backColor & 0x1ff);
     }
@@ -35,10 +40,5 @@ final class TextStyle {
 
     static int decodeEffect(int encodedColor) {
         return (encodedColor >> 18) & 0x3f;
-    }
-
-    private TextStyle() {
-        // Prevent instantiation
-        throw new UnsupportedOperationException();
     }
 }

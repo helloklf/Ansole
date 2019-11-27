@@ -1,8 +1,8 @@
 package com.romide.terminal.common;
 
-import android.content.Context;
 import android.content.Intent;
 import android.text.TextUtils;
+
 /**
  * @author Kiva
  * @date 2015/12/25

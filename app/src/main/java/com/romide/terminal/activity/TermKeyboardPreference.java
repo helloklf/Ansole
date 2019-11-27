@@ -21,9 +21,9 @@ import android.os.Bundle;
 import com.romide.terminal.R;
 
 public class TermKeyboardPreference extends PreferenceBase {
-	public void onCreate(Bundle savedInstanceState) {
-		super.onCreate(savedInstanceState);
-		setPreference(R.xml.keyboard_preferences);
-	}
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setPreference(R.xml.keyboard_preferences);
+    }
 
 }

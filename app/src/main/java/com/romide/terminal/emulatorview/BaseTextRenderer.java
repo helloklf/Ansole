@@ -26,10 +26,6 @@ import android.graphics.Path;
 import android.graphics.RectF;
 
 abstract class BaseTextRenderer implements TextRenderer {
-    protected boolean mReverseVideo;
-
-    protected int[] mPalette;
-
     protected static final int[] sXterm256Paint = {
             // 16 original colors
             // First 8 are dim
@@ -269,7 +265,7 @@ abstract class BaseTextRenderer implements TextRenderer {
             0xffffffd7,
             0xffffffff,
 
-        // 24 grey scale ramp
+            // 24 grey scale ramp
             0xff080808,
             0xff121212,
             0xff1c1c1c,
@@ -295,10 +291,9 @@ abstract class BaseTextRenderer implements TextRenderer {
             0xffe4e4e4,
             0xffeeeeee
     };
-
     static final ColorScheme defaultColorScheme =
             new ColorScheme(0xffcccccc, 0xff000000);
-
+    private static final Matrix.ScaleToFit mScaleType = Matrix.ScaleToFit.FILL;
     private final Paint mCursorScreenPaint;
     private final Paint mCopyRedToAlphaPaint;
     private final Paint mCursorPaint;
@@ -307,13 +302,13 @@ abstract class BaseTextRenderer implements TextRenderer {
     private final Path mAltCursor;
     private final Path mCtrlCursor;
     private final Path mFnCursor;
+    protected boolean mReverseVideo;
+    protected int[] mPalette;
     private RectF mTempSrc;
     private RectF mTempDst;
     private Matrix mScaleMatrix;
     private float mLastCharWidth;
     private float mLastCharHeight;
-    private static final Matrix.ScaleToFit mScaleType = Matrix.ScaleToFit.FILL;
-
     private Bitmap mCursorBitmap;
     private Bitmap mWorkBitmap;
     private int mCursorBitmapCursorMode = -1;
@@ -339,11 +334,11 @@ abstract class BaseTextRenderer implements TextRenderer {
 
         mCopyRedToAlphaPaint = new Paint();
         ColorMatrix cm = new ColorMatrix();
-        cm.set(new float[] {
+        cm.set(new float[]{
                 0, 0, 0, 0, 0,
                 0, 0, 0, 0, 0,
                 0, 0, 0, 0, 0,
-                1, 0, 0, 0, 0 });
+                1, 0, 0, 0, 0});
         mCopyRedToAlphaPaint.setColorFilter(new ColorMatrixColorFilter(cm));
 
         mShiftCursor = new Path();
@@ -372,6 +367,13 @@ abstract class BaseTextRenderer implements TextRenderer {
         mScaleMatrix = new Matrix();
     }
 
+    private static int[] cloneDefaultColors() {
+        int length = sXterm256Paint.length;
+        int[] clone = new int[TextStyle.ciColorLength];
+        System.arraycopy(sXterm256Paint, 0, clone, 0, length);
+        return clone;
+    }
+
     public void setReverseVideo(boolean reverseVideo) {
         mReverseVideo = reverseVideo;
     }
@@ -384,17 +386,10 @@ abstract class BaseTextRenderer implements TextRenderer {
         mPalette[TextStyle.ciCursorBackground] = scheme.getCursorBackColor();
     }
 
-    private static int[] cloneDefaultColors() {
-        int length = sXterm256Paint.length;
-        int[] clone = new int[TextStyle.ciColorLength];
-        System.arraycopy(sXterm256Paint, 0, clone, 0, length);
-        return clone;
-    }
-
     protected void drawCursorImp(Canvas canvas, float x, float y, float charWidth, float charHeight,
-            int cursorMode) {
+                                 int cursorMode) {
         if (cursorMode == 0) {
-            canvas.drawRect(x,  y - charHeight, x + charWidth, y, mCursorScreenPaint);
+            canvas.drawRect(x, y - charHeight, x + charWidth, y, mCursorScreenPaint);
             return;
         }
 
@@ -436,12 +431,12 @@ abstract class BaseTextRenderer implements TextRenderer {
 
     private void drawCursorHelper(Canvas canvas, Path path, int mode, int shift) {
         switch ((mode >> shift) & MODE_MASK) {
-        case MODE_ON:
-            canvas.drawPath(path, mCursorStrokePaint);
-            break;
-        case MODE_LOCKED:
-            canvas.drawPath(path, mCursorPaint);
-            break;
+            case MODE_ON:
+                canvas.drawPath(path, mCursorStrokePaint);
+                break;
+            case MODE_LOCKED:
+                canvas.drawPath(path, mCursorPaint);
+                break;
         }
     }
 }

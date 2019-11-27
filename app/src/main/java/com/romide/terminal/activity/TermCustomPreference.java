@@ -26,6 +26,4 @@ public class TermCustomPreference extends PreferenceBase {
         super.onCreate(savedInstanceState);
         setPreference(R.xml.custom_preferences);
     }
-
-
 }

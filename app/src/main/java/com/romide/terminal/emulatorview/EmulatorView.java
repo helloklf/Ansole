@@ -16,10 +16,6 @@
 
 package com.romide.terminal.emulatorview;
 
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.Hashtable;
-
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Paint;
@@ -46,12 +42,15 @@ import android.view.inputmethod.ExtractedText;
 import android.view.inputmethod.ExtractedTextRequest;
 import android.view.inputmethod.InputConnection;
 import android.widget.Scroller;
-import android.widget.Toast;
 
 import com.romide.terminal.emulatorview.compat.ClipboardManagerCompat;
 import com.romide.terminal.emulatorview.compat.ClipboardManagerCompatFactory;
 import com.romide.terminal.emulatorview.compat.KeycodeConstants;
 import com.romide.terminal.emulatorview.compat.Patterns;
+
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.Hashtable;
 
 /**
  * A view on a {@link TermSession}.  Displays the terminal emulator's screen,
@@ -68,116 +67,7 @@ public class EmulatorView extends View implements GestureDetector.OnGestureListe
     private final static String TAG = "EmulatorView";
     private final static boolean LOG_KEY_EVENTS = false;
     private final static boolean LOG_IME = false;
-
-    /**
-     * We defer some initialization until we have been layed out in the view
-     * hierarchy. The boolean tracks when we know what our size is.
-     */
-    private boolean mKnownSize;
-
-    // Set if initialization was deferred because a TermSession wasn't attached
-    private boolean mDeferInit = false;
-
-    private int mVisibleWidth;
-    private int mVisibleHeight;
-
-    private TermSession mTermSession;
-
-    /**
-     * Total width of each character, in pixels
-     */
-    private float mCharacterWidth;
-
-    /**
-     * Total height of each character, in pixels
-     */
-    private int mCharacterHeight;
-
-    /**
-     * Top-of-screen margin
-     */
-    private int mTopOfScreenMargin;
-
-    /**
-     * Used to render text
-     */
-    private TextRenderer mTextRenderer;
-
-    /**
-     * Text size. Zero means 4 x 8 font.
-     */
-    private int mTextSize = 10;
-
-    private int mCursorBlink;
-    private int mCursorBlinkPeriod;
-
-    /**
-     * Color scheme (default foreground/background colors).
-     */
-    private ColorScheme mColorScheme = BaseTextRenderer.defaultColorScheme;
-
-    private Paint mForegroundPaint;
-
-    private Paint mBackgroundPaint;
-
-    private boolean mUseCookedIme;
-
-    /**
-     * Our terminal emulator.
-     */
-    private TerminalEmulator mEmulator;
-
-    /**
-     * The number of rows of text to display.
-     */
-    private int mRows;
-
-    /**
-     * The number of columns of text to display.
-     */
-    private int mColumns;
-
-    /**
-     * The number of columns that are visible on the display.
-     */
-
-    private int mVisibleColumns;
-
-    /*
-     * The number of rows that are visible on the view
-     */
-    private int mVisibleRows;
-
-    /**
-     * The top row of text to display. Ranges from -activeTranscriptRows to 0
-     */
-    private int mTopRow;
-
-    private int mLeftColumn;
-
-    private boolean mCursorVisible = true;
-
-    private boolean mIsSelectingText = false;
-
-    private boolean mBackKeySendsCharacter = false;
-    private int mControlKeyCode;
-    private int mFnKeyCode;
-    private boolean mIsControlKeySent = false;
-    private boolean mIsFnKeySent = false;
-
-    private boolean mMouseTracking;
-
-    private float mDensity;
-
-    private float mScaledDensity;
     private static final int SELECT_TEXT_OFFSET_Y = -40;
-    private int mSelXAnchor = -1;
-    private int mSelYAnchor = -1;
-    private int mSelX1 = -1;
-    private int mSelY1 = -1;
-    private int mSelX2 = -1;
-    private int mSelY2 = -1;
-
     /**
      * Routing alt and meta keyCodes away from the IME allows Alt key processing to work on
      * the Asus Transformer TF101.
@@ -187,7 +77,92 @@ public class EmulatorView extends View implements GestureDetector.OnGestureListe
      * This test should be refined as we learn more.
      */
     private final static boolean sTrapAltAndMeta = Build.MODEL.contains("Transformer TF101");
+    private static MatchFilter sHttpMatchFilter = new HttpMatchFilter();
+    /**
+     * Our message handler class. Implements a periodic callback.
+     */
+    private final Handler mHandler = new Handler();
+    /**
+     * We defer some initialization until we have been layed out in the view
+     * hierarchy. The boolean tracks when we know what our size is.
+     */
+    private boolean mKnownSize;
+    // Set if initialization was deferred because a TermSession wasn't attached
+    private boolean mDeferInit = false;
+    private int mVisibleWidth;
+    private int mVisibleHeight;
+    private TermSession mTermSession;
+    /**
+     * Total width of each character, in pixels
+     */
+    private float mCharacterWidth;
+    /**
+     * Total height of each character, in pixels
+     */
+    private int mCharacterHeight;
+    /**
+     * Top-of-screen margin
+     */
+    private int mTopOfScreenMargin;
+    /**
+     * Used to render text
+     */
+    private TextRenderer mTextRenderer;
+    /**
+     * Text size. Zero means 4 x 8 font.
+     */
+    private int mTextSize = 10;
+    private int mCursorBlink;
+    private int mCursorBlinkPeriod;
+    /**
+     * Color scheme (default foreground/background colors).
+     */
+    private ColorScheme mColorScheme = BaseTextRenderer.defaultColorScheme;
+    private Paint mForegroundPaint;
+    private Paint mBackgroundPaint;
+    private boolean mUseCookedIme;
+    /**
+     * Our terminal emulator.
+     */
+    private TerminalEmulator mEmulator;
+    /**
+     * The number of rows of text to display.
+     */
+    private int mRows;
+    /**
+     * The number of columns of text to display.
+     */
+    private int mColumns;
+    /**
+     * The number of columns that are visible on the display.
+     */
 
+    private int mVisibleColumns;
+    /*
+     * The number of rows that are visible on the view
+     */
+    private int mVisibleRows;
+    /**
+     * The top row of text to display. Ranges from -activeTranscriptRows to 0
+     */
+    private int mTopRow;
+    private int mLeftColumn;
+    private boolean mCursorVisible = true;
+    private boolean mIsSelectingText = false;
+    private boolean mBackKeySendsCharacter = false;
+    private int mControlKeyCode;
+    private int mFnKeyCode;
+    private boolean mIsControlKeySent = false;
+    private boolean mIsFnKeySent = false;
+    private boolean mMouseTracking;
+    private float mDensity;
+    private float mScaledDensity;
+    private int mSelXAnchor = -1;
+    private int mSelYAnchor = -1;
+    private int mSelX1 = -1;
+    private int mSelY1 = -1;
+    private int mSelX2 = -1;
+    private int mSelY2 = -1;
     private Runnable mBlinkCursor = new Runnable() {
         public void run() {
             if (mCursorBlink != 0) {
@@ -200,7 +175,6 @@ public class EmulatorView extends View implements GestureDetector.OnGestureListe
             invalidate();
         }
     };
-
     private GestureDetector mGestureDetector;
     private GestureDetector.OnGestureListener mExtGestureListener;
     private Scroller mScroller;
@@ -227,38 +201,72 @@ public class EmulatorView extends View implements GestureDetector.OnGestureListe
 
         }
     };
-
     /**
      * A hash table of underlying URLs to implement clickable links.
      */
     private Hashtable<Integer, URLSpan[]> mLinkLayer = new Hashtable<Integer, URLSpan[]>();
+    private MouseTrackingFlingRunner mMouseTrackingFlingRunner = new MouseTrackingFlingRunner();
+    private float mScrollRemainder;
+
+    ;
+    private TermKeyListener mKeyListener;
+    private String mImeBuffer = "";
+    /**
+     * Called by the TermSession when the contents of the view need updating
+     */
+    private UpdateCallback mUpdateNotify = new UpdateCallback() {
+        public void onUpdate() {
+            if (mIsSelectingText) {
+                int rowShift = mEmulator.getScrollCounter();
+                mSelY1 -= rowShift;
+                mSelY2 -= rowShift;
+                mSelYAnchor -= rowShift;
+            }
+            mEmulator.clearScrollCounter();
+            ensureCursorVisible();
+            invalidate();
+        }
+    };
 
     /**
-     * Accept links that start with http[s]:
+     * Create an <code>EmulatorView</code> for a {@link TermSession}.
+     *
+     * @param context The {@link Context} for the view.
+     * @param session The {@link TermSession} this view will be displaying.
+     * @param metrics The {@link DisplayMetrics} of the screen on which the view
+     *                will be displayed.
      */
-    private static class HttpMatchFilter implements MatchFilter {
-        public boolean acceptMatch(CharSequence s, int start, int end) {
-            return startsWith(s, start, end, "http:") ||
-                    startsWith(s, start, end, "https:");
-        }
-
-        private boolean startsWith(CharSequence s, int start, int end,
-                                   String prefix) {
-            int prefixLen = prefix.length();
-            int fragmentLen = end - start;
-            if (prefixLen > fragmentLen) {
-                return false;
-            }
-            for (int i = 0; i < prefixLen; i++) {
-                if (s.charAt(start + i) != prefix.charAt(i)) {
-                    return false;
-                }
-            }
-            return true;
-        }
+    public EmulatorView(Context context, TermSession session, DisplayMetrics metrics) {
+        super(context);
+        attachSession(session);
+        setDensity(metrics);
+        commonConstructor(context);
     }
 
-    private static MatchFilter sHttpMatchFilter = new HttpMatchFilter();
+    /**
+     * Constructor called when inflating this view from XML.
+     * <p/>
+     * You should call {@link #attachSession attachSession} and {@link
+     * #setDensity setDensity} before using an <code>EmulatorView</code> created
+     * using this constructor.
+     */
+    public EmulatorView(Context context, AttributeSet attrs) {
+        super(context, attrs);
+        commonConstructor(context);
+    }
+
+    /**
+     * Constructor called when inflating this view from XML with a
+     * default style set.
+     * <p/>
+     * You should call {@link #attachSession attachSession} and {@link
+     * #setDensity setDensity} before using an <code>EmulatorView</code> created
+     * using this constructor.
+     */
+    public EmulatorView(Context context, AttributeSet attrs, int defStyle) {
+        super(context, attrs, defStyle);
+        commonConstructor(context);
+    }
 
     /**
      * Convert any URLs in the current row into a URLSpan,
@@ -410,118 +418,6 @@ public class EmulatorView extends View implements GestureDetector.OnGestureListe
                 mLinkLayer.put(screenRow + i, linkRows[i]);
         }
         return lineCount;
-    }
-
-    /**
-     * Sends mouse wheel codes to terminal in response to fling.
-     */
-    private class MouseTrackingFlingRunner implements Runnable {
-        private Scroller mScroller;
-        private int mLastY;
-        private MotionEvent mMotionEvent;
-
-        public void fling(MotionEvent e, float velocityX, float velocityY) {
-            float SCALE = 0.15f;
-            mScroller.fling(0, 0,
-                    -(int) (velocityX * SCALE), -(int) (velocityY * SCALE),
-                    0, 0, -100, 100);
-            mLastY = 0;
-            mMotionEvent = e;
-            post(this);
-        }
-
-        public void run() {
-            if (mScroller.isFinished()) {
-                return;
-            }
-            // Check whether mouse tracking was turned off during fling.
-            if (!isMouseTrackingActive()) {
-                return;
-            }
-
-            boolean more = mScroller.computeScrollOffset();
-            int newY = mScroller.getCurrY();
-            for (; mLastY < newY; mLastY++) {
-                sendMouseEventCode(mMotionEvent, 65);
-            }
-            for (; mLastY > newY; mLastY--) {
-                sendMouseEventCode(mMotionEvent, 64);
-            }
-
-            if (more) {
-                post(this);
-            }
-        }
-    }
-
-    ;
-    private MouseTrackingFlingRunner mMouseTrackingFlingRunner = new MouseTrackingFlingRunner();
-
-    private float mScrollRemainder;
-    private TermKeyListener mKeyListener;
-
-    private String mImeBuffer = "";
-
-    /**
-     * Our message handler class. Implements a periodic callback.
-     */
-    private final Handler mHandler = new Handler();
-
-    /**
-     * Called by the TermSession when the contents of the view need updating
-     */
-    private UpdateCallback mUpdateNotify = new UpdateCallback() {
-        public void onUpdate() {
-            if (mIsSelectingText) {
-                int rowShift = mEmulator.getScrollCounter();
-                mSelY1 -= rowShift;
-                mSelY2 -= rowShift;
-                mSelYAnchor -= rowShift;
-            }
-            mEmulator.clearScrollCounter();
-            ensureCursorVisible();
-            invalidate();
-        }
-    };
-
-    /**
-     * Create an <code>EmulatorView</code> for a {@link TermSession}.
-     *
-     * @param context The {@link Context} for the view.
-     * @param session The {@link TermSession} this view will be displaying.
-     * @param metrics The {@link DisplayMetrics} of the screen on which the view
-     *                will be displayed.
-     */
-    public EmulatorView(Context context, TermSession session, DisplayMetrics metrics) {
-        super(context);
-        attachSession(session);
-        setDensity(metrics);
-        commonConstructor(context);
-    }
-
-    /**
-     * Constructor called when inflating this view from XML.
-     * <p/>
-     * You should call {@link #attachSession attachSession} and {@link
-     * #setDensity setDensity} before using an <code>EmulatorView</code> created
-     * using this constructor.
-     */
-    public EmulatorView(Context context, AttributeSet attrs) {
-        super(context, attrs);
-        commonConstructor(context);
-    }
-
-    /**
-     * Constructor called when inflating this view from XML with a
-     * default style set.
-     * <p/>
-     * You should call {@link #attachSession attachSession} and {@link
-     * #setDensity setDensity} before using an <code>EmulatorView</code> created
-     * using this constructor.
-     */
-    public EmulatorView(Context context, AttributeSet attrs, int defStyle) {
-        super(context, attrs, defStyle);
-        commonConstructor(context);
     }
 
     private void commonConstructor(Context context) {
@@ -1029,7 +925,6 @@ public class EmulatorView extends View implements GestureDetector.OnGestureListe
         return mVisibleColumns;
     }
 
-
     /**
      * Page the terminal view (scroll it up or down by <code>delta</code>
      * screenfuls).
@@ -1109,8 +1004,6 @@ public class EmulatorView extends View implements GestureDetector.OnGestureListe
         }
     }
 
-    // Begin GestureDetector.OnGestureListener methods
-
     public boolean onSingleTapUp(MotionEvent e) {
         if (mExtGestureListener != null && mExtGestureListener.onSingleTapUp(e)) {
             return true;
@@ -1129,6 +1022,8 @@ public class EmulatorView extends View implements GestureDetector.OnGestureListe
         // XXX hook into external gesture listener
         showContextMenu();
     }
+
+    // Begin GestureDetector.OnGestureListener methods
 
     public boolean onScroll(MotionEvent e1, MotionEvent e2,
                             float distanceX, float distanceY) {
@@ -1211,8 +1106,6 @@ public class EmulatorView extends View implements GestureDetector.OnGestureListe
         return true;
     }
 
-    // End GestureDetector.OnGestureListener methods
-
     @Override
     public boolean onTouchEvent(MotionEvent ev) {
         if (mIsSelectingText) {
@@ -1262,6 +1155,8 @@ public class EmulatorView extends View implements GestureDetector.OnGestureListe
         }
         return true;
     }
+
+    // End GestureDetector.OnGestureListener methods
 
     /**
      * Called when a key is pressed in the view.
@@ -1371,8 +1266,6 @@ public class EmulatorView extends View implements GestureDetector.OnGestureListe
         return super.onKeyPreIme(keyCode, event);
     }
 
-    ;
-
     private boolean handleControlKey(int keyCode, boolean down) {
         if (keyCode == mControlKeyCode) {
             if (LOG_KEY_EVENTS) {
@@ -1398,6 +1291,8 @@ public class EmulatorView extends View implements GestureDetector.OnGestureListe
         }
         return false;
     }
+
+    ;
 
     private boolean handleFnKey(int keyCode, boolean down) {
         if (keyCode == mFnKeyCode) {
@@ -1681,7 +1576,6 @@ public class EmulatorView extends View implements GestureDetector.OnGestureListe
         mMouseTracking = flag;
     }
 
-
     /**
      * Get the URL for the link displayed at the specified screen coordinates.
      *
@@ -1716,5 +1610,72 @@ public class EmulatorView extends View implements GestureDetector.OnGestureListe
             return link.getURL();
         else
             return null;
+    }
+
+    /**
+     * Accept links that start with http[s]:
+     */
+    private static class HttpMatchFilter implements MatchFilter {
+        public boolean acceptMatch(CharSequence s, int start, int end) {
+            return startsWith(s, start, end, "http:") ||
+                    startsWith(s, start, end, "https:");
+        }
+
+        private boolean startsWith(CharSequence s, int start, int end,
+                                   String prefix) {
+            int prefixLen = prefix.length();
+            int fragmentLen = end - start;
+            if (prefixLen > fragmentLen) {
+                return false;
+            }
+            for (int i = 0; i < prefixLen; i++) {
+                if (s.charAt(start + i) != prefix.charAt(i)) {
+                    return false;
+                }
+            }
+            return true;
+        }
+    }
+
+    /**
+     * Sends mouse wheel codes to terminal in response to fling.
+     */
+    private class MouseTrackingFlingRunner implements Runnable {
+        private Scroller mScroller;
+        private int mLastY;
+        private MotionEvent mMotionEvent;
+
+        public void fling(MotionEvent e, float velocityX, float velocityY) {
+            float SCALE = 0.15f;
+            mScroller.fling(0, 0,
+                    -(int) (velocityX * SCALE), -(int) (velocityY * SCALE),
+                    0, 0, -100, 100);
+            mLastY = 0;
+            mMotionEvent = e;
+            post(this);
+        }
+
+        public void run() {
+            if (mScroller.isFinished()) {
+                return;
+            }
+            // Check whether mouse tracking was turned off during fling.
+            if (!isMouseTrackingActive()) {
+                return;
+            }
+
+            boolean more = mScroller.computeScrollOffset();
+            int newY = mScroller.getCurrY();
+            for (; mLastY < newY; mLastY++) {
+                sendMouseEventCode(mMotionEvent, 65);
+            }
+            for (; mLastY > newY; mLastY--) {
+                sendMouseEventCode(mMotionEvent, 64);
+            }
+
+            if (more) {
+                post(this);
+            }
+        }
     }
 }

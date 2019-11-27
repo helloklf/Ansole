@@ -31,49 +31,41 @@ import com.romide.terminal.compat.ServiceForegroundCompat;
 import com.romide.terminal.emulatorview.TermSession;
 import com.romide.terminal.session.SessionList;
 
-public class TermService extends Service implements TermSession.FinishCallback
-{
+public class TermService extends Service implements TermSession.FinishCallback {
     /* Parallels the value of START_STICKY on API Level >= 5 */
     private static final int COMPAT_START_STICKY = 1;
     private static final int RUNNING_NOTIFICATION = 1;
+    private final IBinder mTSBinder = new TSBinder();
     private ServiceForegroundCompat compat;
     private SessionList mTermSessions;
 
-    public class TSBinder extends Binder {
-        public TermService getService() {
-            return TermService.this;
-        }
-    }
-    private final IBinder mTSBinder = new TSBinder();
-
     /* This should be @Override if building with API Level >=5 */
     @Override
-	public int onStartCommand(Intent intent, int flags, int startId) {
+    public int onStartCommand(Intent intent, int flags, int startId) {
         return COMPAT_START_STICKY;
     }
 
     @Override
     public IBinder onBind(Intent intent) {
-    	Log.i("TermService", "TermService::onBind()");
+        Log.i("TermService", "TermService::onBind()");
         return mTSBinder;
     }
 
-	@Override
+    @Override
     public void onCreate() {
         compat = new ServiceForegroundCompat(this);
         mTermSessions = new SessionList();
 
         /* Put the service in the foreground. */
         Intent notifyIntent = Term.createTermIntent(this);
-        
+
         PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, notifyIntent, 0);
         Notification notification = createNotification(pendingIntent);
-        
+
         compat.startForeground(RUNNING_NOTIFICATION, notification);
     }
 
-
-	private Notification createNotification(PendingIntent pendingIntent) {
+    private Notification createNotification(PendingIntent pendingIntent) {
         NotificationCompat.Builder builder = new NotificationCompat.Builder(this);
         builder.setOngoing(true);
         builder.setContentIntent(pendingIntent);
@@ -83,7 +75,7 @@ public class TermService extends Service implements TermSession.FinishCallback
         builder.setContentTitle(getText(R.string.application_terminal));
         builder.setContentText(getText(R.string.service_notify_text));
         return builder.build();
-	}
+    }
 
     @Override
     public void onDestroy() {
@@ -91,7 +83,6 @@ public class TermService extends Service implements TermSession.FinishCallback
         for (TermSession session : mTermSessions) {
             session.setFinishCallback(null);
             session.finish();
-            
         }
         mTermSessions.clear();
         return;
@@ -102,7 +93,13 @@ public class TermService extends Service implements TermSession.FinishCallback
     }
 
     @Override
-	public void onSessionFinish(TermSession session) {
+    public void onSessionFinish(TermSession session) {
         mTermSessions.remove(session);
+    }
+
+    public class TSBinder extends Binder {
+        public TermService getService() {
+            return TermService.this;
+        }
     }
 }

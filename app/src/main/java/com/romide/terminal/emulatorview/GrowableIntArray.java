@@ -1,6 +1,9 @@
 package com.romide.terminal.emulatorview;
 
 class GrowableIntArray {
+    int[] mData;
+    int mLength;
+
     GrowableIntArray(int initalCapacity) {
         mData = new int[initalCapacity];
         mLength = 0;
@@ -23,7 +26,4 @@ class GrowableIntArray {
     int at(int index) {
         return mData[index];
     }
-
-    int[] mData;
-    int mLength;
 }

@@ -16,12 +16,12 @@
 
 package com.romide.terminal.session;
 
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.Collection;
-
 import com.romide.terminal.emulatorview.TermSession;
 import com.romide.terminal.emulatorview.UpdateCallback;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.LinkedList;
 
 
 /**
@@ -29,13 +29,12 @@ import com.romide.terminal.emulatorview.UpdateCallback;
  * order to be notified when the list is changed.
  */
 @SuppressWarnings("serial")
-public class SessionList extends ArrayList<TermSession>
-{
+public class SessionList extends ArrayList<TermSession> {
     LinkedList<UpdateCallback> callbacks = new LinkedList<UpdateCallback>();
     LinkedList<UpdateCallback> titleChangedListeners = new LinkedList<UpdateCallback>();
     UpdateCallback mTitleChangedListener = new UpdateCallback() {
         @Override
-		public void onUpdate() {
+        public void onUpdate() {
             notifyTitleChanged();
         }
     };
@@ -92,7 +91,7 @@ public class SessionList extends ArrayList<TermSession>
     }
 
     @Override
-    public boolean addAll(Collection <? extends TermSession> collection) {
+    public boolean addAll(Collection<? extends TermSession> collection) {
         boolean result = super.addAll(collection);
         for (TermSession session : collection) {
             session.setTitleChangedListener(mTitleChangedListener);
@@ -102,7 +101,7 @@ public class SessionList extends ArrayList<TermSession>
     }
 
     @Override
-    public boolean addAll(int index, Collection <? extends TermSession> collection) {
+    public boolean addAll(int index, Collection<? extends TermSession> collection) {
         boolean result = super.addAll(index, collection);
         for (TermSession session : collection) {
             session.setTitleChangedListener(mTitleChangedListener);

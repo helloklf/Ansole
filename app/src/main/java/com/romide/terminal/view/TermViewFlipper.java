@@ -16,9 +16,6 @@
 
 package com.romide.terminal.view;
 
-import java.util.Iterator;
-import java.util.LinkedList;
-
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.graphics.Canvas;
@@ -38,54 +35,36 @@ import com.romide.terminal.emulatorview.UpdateCallback;
 import com.romide.terminal.session.ShellTermSession;
 import com.romide.terminal.session.TermSettings;
 
+import java.util.Iterator;
+import java.util.LinkedList;
+
 
 public class TermViewFlipper extends ViewFlipper implements Iterable<View> {
-    private Context context;
-    private Toast mToast;
-    private LinkedList<UpdateCallback> callbacks;
-    private boolean mStatusBarVisible = false;
-
-    private int mCurWidth;
-    private int mCurHeight;
-    private Rect mVisibleRect = new Rect();
-    private Rect mWindowRect = new Rect();
-    private LayoutParams mChildParams = null;
-    private boolean mRedoLayout = false;
-
+    private static final int SCREEN_CHECK_PERIOD = 1000;
     /**
      * True if we must poll to discover if the view has changed size.
      * This is the only known way to detect the view changing size due to
      * the IME being shown or hidden in API level <= 7.
      */
     private final boolean mbPollForWindowSizeChange = (AndroidCompat.SDK < 8);
-    private static final int SCREEN_CHECK_PERIOD = 1000;
     private final Handler mHandler = new Handler();
+    private Context context;
+    private Toast mToast;
+    private LinkedList<UpdateCallback> callbacks;
+    private boolean mStatusBarVisible = false;
+    private int mCurWidth;
+    private int mCurHeight;
+    private Rect mVisibleRect = new Rect();
+    private Rect mWindowRect = new Rect();
+    private LayoutParams mChildParams = null;
+    private boolean mRedoLayout = false;
     private Runnable mCheckSize = new Runnable() {
-            @Override
-			public void run() {
-                adjustChildSize();
-                mHandler.postDelayed(this, SCREEN_CHECK_PERIOD);
-            }
-        };
-
-    class ViewFlipperIterator implements Iterator<View> {
-        int pos = 0;
-
         @Override
-		public boolean hasNext() {
-            return (pos < getChildCount());
+        public void run() {
+            adjustChildSize();
+            mHandler.postDelayed(this, SCREEN_CHECK_PERIOD);
         }
-
-        @Override
-		public View next() {
-            return getChildAt(pos++);
-        }
-
-        @Override
-		public void remove() {
-            throw new UnsupportedOperationException();
-        }
-    }
+    };
 
     public TermViewFlipper(Context context) {
         super(context);
@@ -98,14 +77,14 @@ public class TermViewFlipper extends ViewFlipper implements Iterable<View> {
     }
 
     @SuppressLint("RtlHardcoded")
-	private void commonConstructor(Context context) {
+    private void commonConstructor(Context context) {
         this.context = context;
         callbacks = new LinkedList<UpdateCallback>();
 
         updateVisibleRect();
         Rect visible = mVisibleRect;
         mChildParams = new LayoutParams(visible.width(), visible.height(),
-            Gravity.TOP|Gravity.LEFT);
+                Gravity.TOP | Gravity.LEFT);
     }
 
     public void updatePrefs(TermSettings settings) {
@@ -116,7 +95,7 @@ public class TermViewFlipper extends ViewFlipper implements Iterable<View> {
     }
 
     @Override
-	public Iterator<View> iterator() {
+    public Iterator<View> iterator() {
         return new ViewFlipperIterator();
     }
 
@@ -179,11 +158,11 @@ public class TermViewFlipper extends ViewFlipper implements Iterable<View> {
             return;
         }
 
-        String title = context.getString(R.string.window_title,getDisplayedChild()+1);
+        String title = context.getString(R.string.window_title, getDisplayedChild() + 1);
         if (session instanceof ShellTermSession) {
             title = ((ShellTermSession) session).getTitle(title);
         }
-        
+
 //        session.setTitle(title);
 
         if (mToast == null) {
@@ -311,5 +290,24 @@ public class TermViewFlipper extends ViewFlipper implements Iterable<View> {
             mRedoLayout = false;
         }
         super.onDraw(canvas);
+    }
+
+    class ViewFlipperIterator implements Iterator<View> {
+        int pos = 0;
+
+        @Override
+        public boolean hasNext() {
+            return (pos < getChildCount());
+        }
+
+        @Override
+        public View next() {
+            return getChildAt(pos++);
+        }
+
+        @Override
+        public void remove() {
+            throw new UnsupportedOperationException();
+        }
     }
 }

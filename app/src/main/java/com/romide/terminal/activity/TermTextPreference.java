@@ -21,9 +21,9 @@ import android.os.Bundle;
 import com.romide.terminal.R;
 
 public class TermTextPreference extends PreferenceBase {
-	public void onCreate(Bundle savedInstanceState) {
-		super.onCreate(savedInstanceState);
-		setPreference(R.xml.text_preferences);
-	}
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setPreference(R.xml.text_preferences);
+    }
 
 }

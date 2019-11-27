@@ -10,7 +10,7 @@ import android.widget.ImageView;
  * pressed. This allows the window's entry to be pressed without the close
  * button being triggered. Idea and code shamelessly borrowed from the
  * Android browser's tabs list.
- *
+ * <p>
  * Used by layout xml.
  */
 public class CloseButton extends ImageView {

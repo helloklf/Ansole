@@ -48,17 +48,17 @@ public class WindowListAdapter extends BaseAdapter implements UpdateCallback {
     }
 
     @Override
-	public int getCount() {
+    public int getCount() {
         return mSessions.size();
     }
 
     @Override
-	public Object getItem(int position) {
+    public Object getItem(int position) {
         return mSessions.get(position);
     }
 
     @Override
-	public long getItemId(int position) {
+    public long getItemId(int position) {
         return position;
     }
 
@@ -72,20 +72,20 @@ public class WindowListAdapter extends BaseAdapter implements UpdateCallback {
     }
 
     @Override
-	@SuppressLint("ViewHolder")
-	public View getView(int position, View convertView, ViewGroup parent) {
+    @SuppressLint("ViewHolder")
+    public View getView(int position, View convertView, ViewGroup parent) {
         View child = LayoutInflater.from(ctx).inflate(R.layout.window_list_item, parent, false);
         View close = child.findViewById(R.id.window_list_close);
 
         TextView label = (TextView) child.findViewById(R.id.window_list_label);
-        String defaultTitle = ctx.getString(R.string.window_title, position+1);
+        String defaultTitle = ctx.getString(R.string.window_title, position + 1);
         label.setText(getSessionTitle(position, defaultTitle));
 
         final SessionList sessions = mSessions;
         final int closePosition = position;
         close.setOnClickListener(new View.OnClickListener() {
             @Override
-			public void onClick(View v) {
+            public void onClick(View v) {
                 TermSession session = sessions.remove(closePosition);
                 if (session != null) {
                     session.finish();
@@ -98,7 +98,7 @@ public class WindowListAdapter extends BaseAdapter implements UpdateCallback {
     }
 
     @Override
-	public void onUpdate() {
+    public void onUpdate() {
         notifyDataSetChanged();
     }
 }

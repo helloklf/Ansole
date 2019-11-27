@@ -16,11 +16,6 @@
 
 package com.romide.terminal.session;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.util.ArrayList;
-
 import android.os.Handler;
 import android.os.Message;
 import android.os.ParcelFileDescriptor;
@@ -30,18 +25,21 @@ import com.romide.terminal.Exec;
 import com.romide.terminal.compat.FileCompat;
 import com.romide.terminal.util.TermDebug;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.util.ArrayList;
+
 /**
  * A terminal session, controlling the process attached to the session (usually
  * a shell). It keeps track of process PID and destroys it's process group
  * upon stopping.
  */
 public class ShellTermSession extends GenericTermSession {
+    private static final int PROCESS_EXITED = 1;
     private int mPid;
     private Thread mWatcherThread;
-
     private String mInitialCommand;
-
-    private static final int PROCESS_EXITED = 1;
     private Handler mMsgHandler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
@@ -115,7 +113,7 @@ public class ShellTermSession extends GenericTermSession {
                 checkedPath.append(":");
             }
         }
-        return checkedPath.substring(0, checkedPath.length()-1);
+        return checkedPath.substring(0, checkedPath.length() - 1);
     }
 
     @Override
@@ -162,7 +160,7 @@ public class ShellTermSession extends GenericTermSession {
         final int WHITESPACE = 1;
         final int INQUOTE = 2;
         int state = WHITESPACE;
-        ArrayList<String> result =  new ArrayList<String>();
+        ArrayList<String> result = new ArrayList<String>();
         int cmdLen = cmd.length();
         StringBuilder builder = new StringBuilder();
         for (int i = 0; i < cmdLen; i++) {
@@ -170,7 +168,7 @@ public class ShellTermSession extends GenericTermSession {
             if (state == PLAIN) {
                 if (Character.isWhitespace(c)) {
                     result.add(builder.toString());
-                    builder.delete(0,builder.length());
+                    builder.delete(0, builder.length());
                     state = WHITESPACE;
                 } else if (c == '"') {
                     state = INQUOTE;

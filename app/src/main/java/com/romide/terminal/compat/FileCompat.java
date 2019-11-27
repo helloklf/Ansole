@@ -17,15 +17,24 @@
 package com.romide.terminal.compat;
 
 import android.annotation.SuppressLint;
+
 import java.io.File;
 
 /**
  * Compatibility class for java.io.File
  */
 public class FileCompat {
+    public static boolean canExecute(File file) {
+        if (AndroidCompat.SDK < 9) {
+            return Api8OrEarlier.canExecute(file);
+        } else {
+            return Api9OrLater.canExecute(file);
+        }
+    }
+
     private static class Api9OrLater {
         @SuppressLint("NewApi")
-		public static boolean canExecute(File file) {
+        public static boolean canExecute(File file) {
             return file.canExecute();
         }
     }
@@ -41,13 +50,5 @@ public class FileCompat {
         }
 
         private static native boolean testExecute(String pathname);
-    }
-
-    public static boolean canExecute(File file) {
-        if (AndroidCompat.SDK < 9) {
-            return Api8OrEarlier.canExecute(file);
-        } else {
-            return Api9OrLater.canExecute(file);
-        }
     }
 }

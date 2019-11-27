@@ -1,9 +1,9 @@
 package com.romide.terminal;
 
-import static java.lang.annotation.ElementType.FIELD;
-import static java.lang.annotation.ElementType.METHOD;
-import static java.lang.annotation.ElementType.PARAMETER;
-import static java.lang.annotation.RetentionPolicy.SOURCE;
+import android.annotation.TargetApi;
+import android.os.Build;
+import android.os.Looper;
+import android.os.ParcelFileDescriptor;
 
 import java.io.FileDescriptor;
 import java.io.IOException;
@@ -16,10 +16,10 @@ import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 
-import android.annotation.TargetApi;
-import android.os.Build;
-import android.os.Looper;
-import android.os.ParcelFileDescriptor;
+import static java.lang.annotation.ElementType.FIELD;
+import static java.lang.annotation.ElementType.METHOD;
+import static java.lang.annotation.ElementType.PARAMETER;
+import static java.lang.annotation.RetentionPolicy.SOURCE;
 
 /**
  * Utility methods for creating and managing a subprocess. This class differs
@@ -33,139 +33,138 @@ import android.os.ParcelFileDescriptor;
  */
 public class Exec {
 
-	@Retention(SOURCE)
-	@Target({ METHOD, PARAMETER, FIELD })
-	private @interface NonNull {
-	}
+    public static final String SERVICE_ACTION_V1 = "jackpal.androidterm.action.START_TERM.v1";
+    private static Field descriptorField;
 
-	// Warning: bump the library revision, when an incompatible change happens
-	static {
-		System.loadLibrary("jackpal-termexec2");
-		System.loadLibrary("jackpal-androidterm5");
-	}
+    // Warning: bump the library revision, when an incompatible change happens
+    static {
+        System.loadLibrary("jackpal-termexec2");
+        System.loadLibrary("jackpal-androidterm5");
+    }
 
-	public static native void setPtyWindowSizeInternal(int fd, int row, int col,
-			int xpixel, int ypixel) throws IOException;
+    private final List<String> command;
+    private final Map<String, String> environment;
 
-	public static native void setPtyUTF8ModeInternal(int fd, boolean utf8Mode)
-			throws IOException;
+    public Exec(@NonNull String... command) {
+        this(new ArrayList<>(Arrays.asList(command)));
+    }
 
-	public static final String SERVICE_ACTION_V1 = "jackpal.androidterm.action.START_TERM.v1";
+    public Exec(@NonNull List<String> command) {
+        this.command = command;
+        this.environment = new Hashtable<>(System.getenv());
+    }
 
-	private static Field descriptorField;
+    public static native void setPtyWindowSizeInternal(int fd, int row, int col,
+                                                       int xpixel, int ypixel) throws IOException;
 
-	private final List<String> command;
-	private final Map<String, String> environment;
+    public static native void setPtyUTF8ModeInternal(int fd, boolean utf8Mode)
+            throws IOException;
 
-	public Exec(@NonNull String... command) {
-		this(new ArrayList<>(Arrays.asList(command)));
-	}
+    /**
+     * Causes the calling thread to wait for the process associated with the
+     * receiver to finish executing.
+     *
+     * @return The exit value of the Process being waited on
+     */
+    public static native int waitFor(int processId);
 
-	public Exec(@NonNull List<String> command) {
-		this.command = command;
-		this.environment = new Hashtable<>(System.getenv());
-	}
+    /**
+     * Send signal via the "kill" system call. Android
+     * {@link android.os.Process#sendSignal} does not allow negative numbers
+     * (denoting process groups) to be used.
+     */
+    public static native void sendSignal(int processId, int signal);
 
-	public @NonNull
-	List<String> command() {
-		return command;
-	}
+    public static int createSubprocess(ParcelFileDescriptor masterFd, String cmd,
+                                       String[] args, String[] envVars) throws IOException {
+        final int integerFd;
 
-	public @NonNull
-	Map<String, String> environment() {
-		return environment;
-	}
+        if (Build.VERSION.SDK_INT >= 12)
+            integerFd = FdHelperHoneycomb.getFd(masterFd);
+        else {
+            try {
+                if (descriptorField == null) {
+                    descriptorField = FileDescriptor.class
+                            .getDeclaredField("descriptor");
+                    descriptorField.setAccessible(true);
+                }
 
-	public @NonNull
-	Exec command(@NonNull String... command) {
-		return command(new ArrayList<>(Arrays.asList(command)));
-	}
+                integerFd = descriptorField
+                        .getInt(masterFd.getFileDescriptor());
+            } catch (Exception e) {
+                throw new IOException(
+                        "Unable to obtain file descriptor on this OS version: "
+                                + e.getMessage());
+            }
+        }
 
-	public @NonNull
-	Exec command(List<String> command) {
-		command.clear();
-		command.addAll(command);
-		return this;
-	}
+        return createSubprocessInternal(cmd, args, envVars, integerFd);
+    }
 
-	/**
-	 * Start the process and attach it to the pty, corresponding to given file
-	 * descriptor. You have to obtain this file descriptor yourself by calling
-	 * {@link android.os.ParcelFileDescriptor#open} on special terminal
-	 * multiplexer device (located at /dev/ptmx).
-	 * <p>
-	 * Callers are responsible for closing the descriptor.
-	 * 
-	 * @return the PID of the started process.
-	 */
-	public int start(@NonNull ParcelFileDescriptor ptmxFd) throws IOException {
-		if (Looper.getMainLooper() == Looper.myLooper())
-			throw new IllegalStateException(
-					"This method must not be called from the main thread!");
+    private static native int createSubprocessInternal(String cmd,
+                                                       String[] args, String[] envVars, int masterFd);
 
-		if (command.size() == 0)
-			throw new IllegalStateException("Empty command!");
+    public @NonNull
+    List<String> command() {
+        return command;
+    }
 
-		final String cmd = command.remove(0);
-		final String[] cmdArray = command.toArray(new String[command.size()]);
-		final String[] envArray = new String[environment.size()];
-		int i = 0;
-		for (Map.Entry<String, String> entry : environment.entrySet()) {
-			envArray[i++] = entry.getKey() + "=" + entry.getValue();
-		}
+    public @NonNull
+    Map<String, String> environment() {
+        return environment;
+    }
 
-		return createSubprocess(ptmxFd, cmd, cmdArray, envArray);
-	}
+    public @NonNull
+    Exec command(@NonNull String... command) {
+        return command(new ArrayList<>(Arrays.asList(command)));
+    }
 
-	/**
-	 * Causes the calling thread to wait for the process associated with the
-	 * receiver to finish executing.
-	 * 
-	 * @return The exit value of the Process being waited on
-	 */
-	public static native int waitFor(int processId);
+    public @NonNull
+    Exec command(List<String> command) {
+        command.clear();
+        command.addAll(command);
+        return this;
+    }
 
-	/**
-	 * Send signal via the "kill" system call. Android
-	 * {@link android.os.Process#sendSignal} does not allow negative numbers
-	 * (denoting process groups) to be used.
-	 */
-	public static native void sendSignal(int processId, int signal);
+    /**
+     * Start the process and attach it to the pty, corresponding to given file
+     * descriptor. You have to obtain this file descriptor yourself by calling
+     * {@link android.os.ParcelFileDescriptor#open} on special terminal
+     * multiplexer device (located at /dev/ptmx).
+     * <p>
+     * Callers are responsible for closing the descriptor.
+     *
+     * @return the PID of the started process.
+     */
+    public int start(@NonNull ParcelFileDescriptor ptmxFd) throws IOException {
+        if (Looper.getMainLooper() == Looper.myLooper())
+            throw new IllegalStateException(
+                    "This method must not be called from the main thread!");
 
-	public static int createSubprocess(ParcelFileDescriptor masterFd, String cmd,
-			String[] args, String[] envVars) throws IOException {
-		final int integerFd;
+        if (command.size() == 0)
+            throw new IllegalStateException("Empty command!");
 
-		if (Build.VERSION.SDK_INT >= 12)
-			integerFd = FdHelperHoneycomb.getFd(masterFd);
-		else {
-			try {
-				if (descriptorField == null) {
-					descriptorField = FileDescriptor.class
-							.getDeclaredField("descriptor");
-					descriptorField.setAccessible(true);
-				}
+        final String cmd = command.remove(0);
+        final String[] cmdArray = command.toArray(new String[command.size()]);
+        final String[] envArray = new String[environment.size()];
+        int i = 0;
+        for (Map.Entry<String, String> entry : environment.entrySet()) {
+            envArray[i++] = entry.getKey() + "=" + entry.getValue();
+        }
 
-				integerFd = descriptorField
-						.getInt(masterFd.getFileDescriptor());
-			} catch (Exception e) {
-				throw new IOException(
-						"Unable to obtain file descriptor on this OS version: "
-								+ e.getMessage());
-			}
-		}
+        return createSubprocess(ptmxFd, cmd, cmdArray, envArray);
+    }
 
-		return createSubprocessInternal(cmd, args, envVars, integerFd);
-	}
+    @Retention(SOURCE)
+    @Target({METHOD, PARAMETER, FIELD})
+    private @interface NonNull {
+    }
 
-	private static native int createSubprocessInternal(String cmd,
-			String[] args, String[] envVars, int masterFd);
-	
-	// prevents runtime errors on old API versions with ruthless verifier
-	@TargetApi(Build.VERSION_CODES.HONEYCOMB_MR1)
-	public static class FdHelperHoneycomb {
-		public static int getFd(ParcelFileDescriptor descriptor) {
-			return descriptor.getFd();
-		}
-	}
+    // prevents runtime errors on old API versions with ruthless verifier
+    @TargetApi(Build.VERSION_CODES.HONEYCOMB_MR1)
+    public static class FdHelperHoneycomb {
+        public static int getFd(ParcelFileDescriptor descriptor) {
+            return descriptor.getFd();
+        }
+    }
 }

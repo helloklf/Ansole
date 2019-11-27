@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <string name="application_terminal">Ansole(ski)</string>
+    <string name="application_terminal">Ansole+</string>
     <string name="input_password">Input your password</string>
     <string name="password_worng">Password not correct.</string>
     <string name="open_link">Open url %s</string>
@@ -26,7 +26,8 @@
     <string name="menu_set_title">Set window title</string>
     <string name="new_window">New window</string>
     <string name="close_window">Close window</string>
-    <string name="window_list">Windows</string>
+    <string name="paste_history">Clipboard record</string>
+    <string name="paste_history_desc">The pasted script is shown here.Click the content to write to the terminal</string>
     <string name="prev_window">Prev window</string>
     <string name="next_window">Next window</string>
     <string name="reset">Reset term</string>

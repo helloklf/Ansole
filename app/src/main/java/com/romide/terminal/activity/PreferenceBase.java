@@ -16,35 +16,18 @@
 
 package com.romide.terminal.activity;
 
-import android.content.Context;
-import android.os.Build;
 import android.os.Bundle;
-import android.preference.PreferenceActivity;
 import android.preference.PreferenceFragment;
-import android.support.v4.app.FragmentManager;
 import android.support.v7.app.ActionBar;
-import android.support.v7.widget.AppCompatCheckBox;
-import android.support.v7.widget.AppCompatCheckedTextView;
-import android.support.v7.widget.AppCompatEditText;
-import android.support.v7.widget.AppCompatRadioButton;
-import android.support.v7.widget.AppCompatSpinner;
 import android.support.v7.widget.Toolbar;
-import android.util.AttributeSet;
-import android.view.LayoutInflater;
-import android.view.MenuItem;
-import android.view.View;
-import android.view.ViewGroup;
 
 import com.romide.terminal.R;
-import com.romide.terminal.compat.ActionBarCompat;
-import com.romide.terminal.compat.ActivityCompat;
-import com.romide.terminal.compat.AndroidCompat;
 
 public class PreferenceBase extends ActivityBase {
-	@SuppressWarnings("deprecation")
-	@Override
-	protected void onCreate(Bundle savedInstanceState) {
-		super.onCreate(savedInstanceState);
+    @SuppressWarnings("deprecation")
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
 
         setContentView(R.layout.preference_activity);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
@@ -54,7 +37,7 @@ public class PreferenceBase extends ActivityBase {
         if (ab != null) {
             ab.setDisplayOptions(ActionBar.DISPLAY_HOME_AS_UP, ActionBar.DISPLAY_HOME_AS_UP);
         }
-	}
+    }
 
     protected void setPreference(int resId) {
         InnerPreference fragment = new InnerPreference();
@@ -70,6 +53,7 @@ public class PreferenceBase extends ActivityBase {
 
     public static class InnerPreference extends PreferenceFragment {
         public static final String ARG_RES = "resId";
+
         @Override
         public void onCreate(Bundle savedInstanceState) {
             super.onCreate(savedInstanceState);

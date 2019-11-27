@@ -57,7 +57,7 @@ class EmulatorDebug {
             if (b < 32 || b > 126) {
                 buf.append(String.format("\\x%02x", b));
             } else {
-                buf.append((char)b);
+                buf.append((char) b);
             }
         }
         return buf.toString();

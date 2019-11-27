@@ -10,6 +10,10 @@ import android.os.Looper;
 public class UiKit extends Handler {
     private static UiKit sInstance;
 
+    private UiKit() {
+        super(Looper.getMainLooper());
+    }
+
     public static UiKit get() {
         if (sInstance == null) {
             synchronized (UiKit.class) {
@@ -19,9 +23,5 @@ public class UiKit extends Handler {
             }
         }
         return sInstance;
-    }
-
-    private UiKit() {
-        super(Looper.getMainLooper());
     }
 }

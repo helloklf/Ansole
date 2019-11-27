@@ -26,73 +26,72 @@ import com.romide.terminal.session.TermSettings;
 
 public class TermView extends EmulatorView {
 
-	private onImeStatusChangedListener imeStatusChangedListener;
-	private int oldbottom;
-	
-	public TermView(Context context, TermSession session, DisplayMetrics metrics) {
-		this(context, session, metrics, null);
-	}
+    private onImeStatusChangedListener imeStatusChangedListener;
+    private int oldbottom;
+
+    public TermView(Context context, TermSession session, DisplayMetrics metrics) {
+        this(context, session, metrics, null);
+    }
 
 
-	public TermView(Context context, TermSession session,
-			DisplayMetrics metrics, TermView.onImeStatusChangedListener lis) {
-		super(context, session, metrics);
-		this.imeStatusChangedListener = lis;
-		oldbottom = getBottom();
-	}
+    public TermView(Context context, TermSession session,
+                    DisplayMetrics metrics, TermView.onImeStatusChangedListener lis) {
+        super(context, session, metrics);
+        this.imeStatusChangedListener = lis;
+        oldbottom = getBottom();
+    }
 
-	
 
-	public void updatePrefs(TermSettings settings, ColorScheme scheme) {
-		if (scheme == null) {
-			scheme = new ColorScheme(settings.getColorScheme());
-		}
+    public void updatePrefs(TermSettings settings, ColorScheme scheme) {
+        if (scheme == null) {
+            scheme = new ColorScheme(settings.getColorScheme());
+        }
 
-		setTextSize(settings.getFontSize());
-		setUseCookedIME(settings.useCookedIME());
-		setColorScheme(scheme);
-		setBackKeyCharacter(settings.getBackKeyCharacter());
-		setAltSendsEsc(settings.getAltSendsEscFlag());
-		setControlKeyCode(settings.getControlKeyCode());
-		setFnKeyCode(settings.getFnKeyCode());
-		setTermType(settings.getTermType());
-		setMouseTracking(settings.getMouseTrackingFlag());
-		setCursorBlink(settings.getCursorBlink());
+        setTextSize(settings.getFontSize());
+        setUseCookedIME(settings.useCookedIME());
+        setColorScheme(scheme);
+        setBackKeyCharacter(settings.getBackKeyCharacter());
+        setAltSendsEsc(settings.getAltSendsEscFlag());
+        setControlKeyCode(settings.getControlKeyCode());
+        setFnKeyCode(settings.getFnKeyCode());
+        setTermType(settings.getTermType());
+        setMouseTracking(settings.getMouseTrackingFlag());
+        setCursorBlink(settings.getCursorBlink());
         setCursorBlinkPeriod(settings.getCursorBlinkPeriod());
-	}
+    }
 
-	public void updatePrefs(TermSettings settings) {
-		updatePrefs(settings, null);
-	}
+    public void updatePrefs(TermSettings settings) {
+        updatePrefs(settings, null);
+    }
 
-	@Override
-	protected void onLayout(boolean changed, int left, int top, int right,
-			int bottom) {
-		super.onLayout(changed, left, top, right, bottom);
-		if (oldbottom == bottom) {
-			return;
-		}
-		if (oldbottom < bottom) {
-			sendImeStatusChanged(false);
-		} else {
-			sendImeStatusChanged(true);
-		}
-		oldbottom = bottom;
-	}
+    @Override
+    protected void onLayout(boolean changed, int left, int top, int right,
+                            int bottom) {
+        super.onLayout(changed, left, top, right, bottom);
+        if (oldbottom == bottom) {
+            return;
+        }
+        if (oldbottom < bottom) {
+            sendImeStatusChanged(false);
+        } else {
+            sendImeStatusChanged(true);
+        }
+        oldbottom = bottom;
+    }
 
-	private void sendImeStatusChanged(boolean open) {
-		if (this.imeStatusChangedListener != null) {
-			imeStatusChangedListener.onImeStatusChange(open);
-		}
-	}
+    private void sendImeStatusChanged(boolean open) {
+        if (this.imeStatusChangedListener != null) {
+            imeStatusChangedListener.onImeStatusChange(open);
+        }
+    }
 
-	public void setImeStatusChangedListener(
-			onImeStatusChangedListener imeStatusChangedListener) {
-		this.imeStatusChangedListener = imeStatusChangedListener;
-	}
+    public void setImeStatusChangedListener(
+            onImeStatusChangedListener imeStatusChangedListener) {
+        this.imeStatusChangedListener = imeStatusChangedListener;
+    }
 
-	public interface onImeStatusChangedListener {
-		void onImeStatusChange(boolean open);
-	}
+    public interface onImeStatusChangedListener {
+        void onImeStatusChange(boolean open);
+    }
 
 }

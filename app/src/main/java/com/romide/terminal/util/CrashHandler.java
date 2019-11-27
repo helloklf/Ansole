@@ -1,22 +1,5 @@
 package com.romide.terminal.util;
 
-import static com.romide.terminal.util.Constant.CRASH_REPORTER_EXTENSION;
-import static com.romide.terminal.util.Constant.STACK_TRACE;
-import static com.romide.terminal.util.Constant.VERSION_CODE;
-import static com.romide.terminal.util.Constant.VERSION_NAME;
-
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.StringWriter;
-import java.io.Writer;
-import java.lang.Thread.UncaughtExceptionHandler;
-import java.lang.reflect.Field;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.Properties;
-
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.pm.PackageInfo;
@@ -31,9 +14,26 @@ import android.widget.Toast;
 import com.romide.terminal.App;
 import com.romide.terminal.R;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.io.Writer;
+import java.lang.Thread.UncaughtExceptionHandler;
+import java.lang.reflect.Field;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Properties;
+
+import static com.romide.terminal.util.Constant.CRASH_REPORTER_EXTENSION;
+import static com.romide.terminal.util.Constant.STACK_TRACE;
+import static com.romide.terminal.util.Constant.VERSION_CODE;
+import static com.romide.terminal.util.Constant.VERSION_NAME;
+
 public class CrashHandler implements UncaughtExceptionHandler {
-    private Thread.UncaughtExceptionHandler defaultHandler;
     private static CrashHandler sInstance;
+    private Thread.UncaughtExceptionHandler defaultHandler;
     private Properties deviceInfo = new Properties();
     private boolean handled = false;
 
